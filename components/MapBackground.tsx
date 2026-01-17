@@ -55,10 +55,10 @@ export default function MapBackground() {
   const [activeRoute, setActiveRoute] = useState<number | null>(null);
 
   return (
-    <div className="w-full h-full opacity-60 grayscale-[10%] relative">
+    <div className="w-full h-full opacity-40 grayscale-[10%] relative">
       <style jsx global>{`
         .leaflet-container {
-            background: transparent !important;
+          background: transparent !important;
         }
       `}</style>
       <MapContainer
@@ -97,15 +97,15 @@ export default function MapBackground() {
                 setActiveRoute(route.id);
               },
               mouseout: (e) => {
-                 const target = e.target;
-                 target.setStyle({ weight: 4, opacity: 0.6, color: "#64748b" });
-                 setActiveRoute(null);
+                const target = e.target;
+                target.setStyle({ weight: 4, opacity: 0.6, color: "#64748b" });
+                setActiveRoute(null);
               },
             }}
           />
         ))}
       </MapContainer>
-      
+
       {/* Overlay to fade map into background/content */}
       <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent pointer-events-none z-[1]" />
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none z-[2]" />

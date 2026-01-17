@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import emailjs from "@emailjs/browser";
 import { Navigation } from "@/components/Navigation";
 import { Footer } from "@/components/Footer";
@@ -14,30 +14,62 @@ export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+    if (publicKey && publicKey !== "your_public_key") {
+      emailjs.init(publicKey);
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formRef.current) return;
 
     setIsSubmitting(true);
 
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+    if (
+      !serviceId ||
+      !templateId ||
+      !publicKey ||
+      serviceId.includes("your") ||
+      templateId.includes("your") ||
+      publicKey.includes("your")
+    ) {
+      toast({
+        title: "Configuration Error",
+        description:
+          "Please set up your real EmailJS credentials in .env.local (Service ID, Template ID, and Public Key).",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
-      await emailjs.sendForm(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_id",
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_id",
+      const result = await emailjs.sendForm(
+        serviceId,
+        templateId,
         formRef.current,
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "public_key"
+        publicKey,
       );
 
+      console.log("EmailJS Success:", result.text);
       toast({
         title: "Message Sent!",
         description: "We'll get back to you as soon as possible.",
       });
       formRef.current.reset();
-    } catch (error) {
-      console.error("EmailJS Error:", error);
+    } catch (error: any) {
+      console.error("EmailJS Full Error:", error);
       toast({
-        title: "Error",
-        description: "Failed to send message. Please try again later.",
+        title: "Submission Failed",
+        description:
+          error?.text ||
+          "Failed to send message. Please check the console for details.",
         variant: "destructive",
       });
     } finally {
